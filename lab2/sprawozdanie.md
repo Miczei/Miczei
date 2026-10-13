@@ -1,6 +1,6 @@
 # Sprawozdanie – Laboratorium 2: Listy dynamiczne
 
-Język: Python. Kod: `listy.py` (uruchomienie: `python listy.py`).
+Język: Python. Kod: `zadanie1.py` – `zadanie4.py` (każde zadanie osobno, uruchomienie np. `python zadanie1.py`).
 
 ## Opis implementacji
 
