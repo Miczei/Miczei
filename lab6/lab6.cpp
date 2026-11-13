@@ -2,7 +2,6 @@
 #include <vector>
 #include <string>
 #include <cstdlib>
-#include <chrono>
 #include <iomanip>
 using namespace std;
 
@@ -10,7 +9,7 @@ using namespace std;
 struct Stats
 {
     long long comparisons = 0;  // porownania elementow
-    long long swaps = 0;        // zamiany (Quick Sort) albo przesuniecia (Insertion Sort)
+    long long swaps = 0;        // zamiany (Quick Sort)
     int maxDepth = 0;           // maksymalna glebokosc rekurencji Quick Sort
 };
 
@@ -226,15 +225,6 @@ vector<int> descendingData(int n)
     return data;
 }
 
-// rosnace, ale co 10 elementow zamieniam dwa, np. 1 2 3 4 5 8 7 6 9 10
-vector<int> almostSortedData(int n)
-{
-    vector<int> data = ascendingData(n);
-    for (int i = 5; i + 2 < n; i += 10)
-        swap(data[i], data[i + 2]);
-    return data;
-}
-
 // Quick Sort na tych samych danych z pivotem ostatnim i losowym; wypisuje 2 wiersze tabeli
 void quickExperiment(string dataName, vector<int> original)
 {
@@ -252,71 +242,6 @@ void quickExperiment(string dataName, vector<int> original)
              << setw(16) << stats.maxDepth << endl;
     }
     randomPivot = false;
-}
-
-// ===================== Zadanie 3 - porownanie =====================
-
-// Insertion Sort z laboratorium 5 (z licznikami)
-void insertionSort(vector<int>& data)
-{
-    int n = data.size();
-    for (int i = 1; i < n; i++)
-    {
-        int key = data[i];
-        int j = i - 1;
-        while (j >= 0)
-        {
-            stats.comparisons++;
-            if (data[j] > key)
-            {
-                data[j + 1] = data[j];  // przesuniecie
-                stats.swaps++;
-                j--;
-            }
-            else
-                break;
-        }
-        data[j + 1] = key;
-    }
-}
-
-// sortuje dane jednym algorytmem, mierzy czas i wypisuje wiersz tabeli
-void measure(string label, string algorithm, vector<int>& data)
-{
-    int n = data.size();
-    resetStats();
-    randomPivot = false;  // Quick Sort w podstawowej wersji (ostatni element)
-
-    auto start = chrono::high_resolution_clock::now();
-    if (algorithm == "Insertion Sort")
-        insertionSort(data);
-    else if (algorithm == "Merge Sort")
-        mergeSort(data, 0, n - 1);
-    else
-        quickSort(data, 0, n - 1);
-    auto end = chrono::high_resolution_clock::now();
-    double ms = chrono::duration<double, milli>(end - start).count();
-
-    cout << setw(16) << label << setw(16) << algorithm
-         << setw(14) << stats.comparisons
-         << setw(12) << fixed << setprecision(3) << ms << endl;
-}
-
-// wszystkie trzy algorytmy dostaja identyczne dane (kopie original)
-void measureAll(string label, vector<int> original)
-{
-    vector<int> insertionData = original;
-    vector<int> mergeData = original;
-    vector<int> quickData = original;
-    measure(label, "Insertion Sort", insertionData);
-    measure(label, "Merge Sort", mergeData);
-    measure(label, "Quick Sort", quickData);
-}
-
-void printHeader(string firstColumn)
-{
-    cout << setw(16) << firstColumn << setw(16) << "Algorytm"
-         << setw(14) << "Porownania" << setw(12) << "Czas [ms]" << endl;
 }
 
 // ===================== Zadanie 4 - k-ty najmniejszy =====================
@@ -401,25 +326,6 @@ int main()
         quickExperiment("rosnace", ascendingData(n));
         quickExperiment("malejace", descendingData(n));
     }
-
-    // ----- Zadanie 3 -----
-    cout << endl << "===== Zadanie 3 - porownanie =====" << endl;
-    cout << "Eksperyment 1 - dane losowe" << endl;
-    printHeader("n");
-    int sizes3[] = {100, 1000, 5000, 10000, 50000};
-    for (int n : sizes3)
-    {
-        vector<int> original = randomData(n);
-        measureAll(to_string(n), original);
-    }
-
-    int n = 10000;
-    cout << endl << "Eksperyment 2 - charakter danych (n = " << n << ")" << endl;
-    printHeader("Dane");
-    measureAll("losowe", randomData(n));
-    measureAll("rosnace", ascendingData(n));
-    measureAll("malejace", descendingData(n));
-    measureAll("prawie posort.", almostSortedData(n));
 
     // ----- Zadanie 4 -----
     cout << endl << "===== Zadanie 4 - k-ty najmniejszy =====" << endl;
