@@ -2,7 +2,6 @@
 #include <vector>
 #include <string>
 #include <cstdlib>
-#include <climits>
 #include <iomanip>
 #include <algorithm>
 using namespace std;
@@ -124,83 +123,7 @@ void deleteTree(Node*& root)
     root = nullptr;
 }
 
-// ===================== Zadanie 2 - usuwanie i isBST =====================
-
-// usuwa wartosc z BST i zwraca nowy korzen (pod)drzewa
-Node* remove(Node* root, int value)
-{
-    if (root == nullptr)  // nie ma takiej wartosci
-        return nullptr;
-
-    if (value < root->value)
-        root->left = remove(root->left, value);
-    else if (value > root->value)
-        root->right = remove(root->right, value);
-    else
-    {
-        // przypadek 1: lisc -> po prostu usuwam
-        if (root->left == nullptr && root->right == nullptr)
-        {
-            delete root;
-            return nullptr;
-        }
-        // przypadek 2: jedno dziecko -> dziecko zajmuje miejsce usuwanego wezla
-        if (root->left == nullptr)
-        {
-            Node* child = root->right;
-            delete root;
-            return child;
-        }
-        if (root->right == nullptr)
-        {
-            Node* child = root->left;
-            delete root;
-            return child;
-        }
-        // przypadek 3: dwoje dzieci -> wstawiam wartosc nastepnika inorder
-        // (najmniejszy w prawym poddrzewie) i usuwam tego nastepnika
-        Node* successor = findMin(root->right);
-        root->value = successor->value;
-        root->right = remove(root->right, successor->value);
-    }
-    return root;
-}
-
-// sprawdza, czy kazdy wezel miesci sie w dozwolonym zakresie (minValue, maxValue)
-bool isBSTRange(Node* node, long long minValue, long long maxValue)
-{
-    if (node == nullptr)
-        return true;
-    if (node->value <= minValue || node->value >= maxValue)
-        return false;
-    // w lewym poddrzewie wszystko musi byc < node->value, w prawym > node->value
-    return isBSTRange(node->left, minValue, node->value) &&
-           isBSTRange(node->right, node->value, maxValue);
-}
-
-bool isBST(Node* root)
-{
-    return isBSTRange(root, LLONG_MIN, LLONG_MAX);
-}
-
-// liczy, ile wezlow trzeba porownac, zeby znalezc wartosc
-int searchComparisons(Node* root, int value)
-{
-    int count = 0;
-    Node* current = root;
-    while (current != nullptr)
-    {
-        count++;
-        if (value == current->value)
-            break;
-        if (value < current->value)
-            current = current->left;
-        else
-            current = current->right;
-    }
-    return count;
-}
-
+// buduje BST z podanych wartosci (dodaje je po kolei)
 Node* buildBST(vector<int> values)
 {
     Node* root = nullptr;
@@ -384,52 +307,8 @@ int main()
     cout << "findMin = " << findMin(root)->value << endl;
     cout << "findMax = " << findMax(root)->value << endl;
     cout << "height = " << height(root) << endl;
-
-    // ----- Zadanie 2 -----
-    cout << endl << "===== Zadanie 2 - usuwanie i isBST =====" << endl;
-    cout << "isBST(drzewo z zad. 1) = " << isBST(root) << endl;
-
-    root = remove(root, 100);
-    cout << "remove(100) - nie ma takiej wartosci: ";
-    inorder(root);
-    cout << endl;
-
-    root = remove(root, 1);
-    cout << "remove(1)   - lisc:                   ";
-    inorder(root);
-    cout << "| isBST = " << isBST(root) << endl;
-
-    root = remove(root, 3);
-    cout << "remove(3)   - jedno dziecko:          ";
-    inorder(root);
-    cout << "| isBST = " << isBST(root) << endl;
-
-    root = remove(root, 8);
-    cout << "remove(8)   - dwoje dzieci (korzen):  ";
-    inorder(root);
-    cout << "| isBST = " << isBST(root) << endl;
-    cout << "nowy korzen = " << root->value << ", preorder: ";
-    preorder(root);
-    cout << endl;
     deleteTree(root);
 
-    // niepoprawne BST z tresci zadania: 6 lezy w prawym poddrzewie 10
-    Node* bad = createNode(10);
-    bad->left = createNode(5);
-    bad->right = createNode(15);
-    bad->right->left = createNode(6);
-    cout << "isBST(10, 5, 15, 6 pod 15) = " << isBST(bad) << endl;
-    deleteTree(bad);
-
-    cout << endl << "Wplyw kolejnosci danych:" << endl;
-    Node* treeA = buildBST({1, 2, 3, 4, 5, 6, 7, 8, 9, 10});
-    Node* treeB = buildBST({6, 3, 8, 2, 4, 7, 9, 1, 5, 10});
-    cout << "A (1 2 3 ... 10):           wysokosc = " << height(treeA)
-         << ", porownania przy szukaniu 10 = " << searchComparisons(treeA, 10) << endl;
-    cout << "B (6 3 8 2 4 7 9 1 5 10):   wysokosc = " << height(treeB)
-         << ", porownania przy szukaniu 10 = " << searchComparisons(treeB, 10) << endl;
-    deleteTree(treeA);
-    deleteTree(treeB);
 
     // ----- Zadanie 3 -----
     cout << endl << "===== Zadanie 3 - AVL =====" << endl;
