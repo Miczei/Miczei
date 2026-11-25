@@ -1,22 +1,73 @@
 #include <iostream>
 #include <string>
-#include <queue>
 using namespace std;
 
-queue<string> patients;   // jedna kolejka FIFO z oczekujacymi pacjentami
+// wezel kolejki (jak w laborce 3, tylko trzyma imie zamiast liczby)
+struct Node
+{
+    string value;
+    Node* next;
+};
+
+Node* front = nullptr;    // pierwszy pacjent (najblizej obslugi)
+Node* back = nullptr;     // ostatni pacjent
 string windowA = "";      // okienko A: "" = wolne, w innym razie imie obslugiwanego pacjenta
 string windowB = "";      // okienko B
+
+// ===================== kolejka (z laborki 3) =====================
+
+// dodaje element na koniec kolejki
+void enqueue(Node*& front, Node*& back, string value)
+{
+    Node* newNode = new Node;
+    newNode->value = value;
+    newNode->next = nullptr;
+
+    if (back == nullptr)  // kolejka pusta -> nowy element jest i pierwszy, i ostatni
+    {
+        front = newNode;
+        back = newNode;
+    }
+    else
+    {
+        back->next = newNode;  // doczepiamy za ostatnim
+        back = newNode;
+    }
+}
+
+// usuwa element z poczatku kolejki, zwraca false gdy kolejka jest pusta
+bool dequeue(Node*& front, Node*& back)
+{
+    if (front == nullptr)
+        return false;
+
+    Node* temp = front;
+    front = front->next;
+    delete temp;
+
+    if (front == nullptr)  // usunelismy ostatni element
+        back = nullptr;
+    return true;
+}
+
+// sprawdza, czy kolejka jest pusta
+bool isEmpty(Node* front)
+{
+    return front == nullptr;
+}
+
+// ===================== okienka =====================
 
 // pacjent dolacza na koniec kolejki
 void arrive(string name)
 {
-    patients.push(name);
+    enqueue(front, back, name);
 }
 
 // pierwszy pacjent z kolejki idzie do pierwszego wolnego okienka (najpierw A, potem B)
 void serve()
 {
-    if (patients.empty())  // pusta kolejka -> nic nie robi
+    if (isEmpty(front))  // pusta kolejka -> nic nie robi
         return;
 
     if (windowA != "" && windowB != "")  // oba zajete
@@ -25,8 +76,8 @@ void serve()
         return;
     }
 
-    string name = patients.front();
-    patients.pop();
+    string name = front->value;  // pierwszy w kolejce
+    dequeue(front, back);
 
     if (windowA == "")
     {
@@ -53,18 +104,18 @@ void freeWindow(string x)
 void showQueue()
 {
     cout << "Kolejka: ";
-    if (patients.empty())
+    if (isEmpty(front))
     {
         cout << "(pusta)" << endl;
         return;
     }
-    queue<string> copy = patients;  // kopia, zeby nie zepsuc prawdziwej kolejki
-    while (!copy.empty())
+    Node* current = front;
+    while (current != nullptr)
     {
-        cout << copy.front();
-        copy.pop();
-        if (!copy.empty())
+        cout << current->value;
+        if (current->next != nullptr)
             cout << " <- ";
+        current = current->next;
     }
     cout << endl;
 }
@@ -88,6 +139,9 @@ int main()
     serve();          // A obsluguje Celine
     status();
     showQueue();
+
+    // sprzatanie pamieci (gdyby ktos zostal w kolejce)
+    while (dequeue(front, back)) {}
 
     return 0;
 }
